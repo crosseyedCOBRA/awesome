@@ -1,6 +1,5 @@
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import Quickshell.Services.SystemTray
 import QtQuick
@@ -21,17 +20,8 @@ ShellRoot {
     readonly property color colorOrange: "#ff9e64"
     readonly property color colorPink: "#f7768e"
 
-    // This same shell.qml is deployed to both the Awesome and Hyprland
-    // sessions (see home.nix). HYPRLAND_INSTANCE_SIGNATURE is set by
-    // Hyprland itself and nothing else -- it's the same variable Hyprland's
-    // own tooling (hyprctl) uses to find its IPC socket, so it's a more
-    // direct signal than e.g. XDG_CURRENT_DESKTOP.
-    readonly property bool isHyprland: !!Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE")
-
     // Awesome has no native IPC, so its rc.lua pushes per-screen tag state
-    // to this file (keyed by output name) whenever it changes. Unused
-    // under Hyprland, which has its own live IPC (Quickshell.Hyprland,
-    // used directly below) instead of needing a polled file.
+    // to this file (keyed by output name) whenever it changes.
     FileView {
         id: awesomeTagsFile
         path: "/home/mike/.cache/awesome/tags.json"
@@ -46,18 +36,16 @@ ShellRoot {
         }
     }
 
-    // Fire-and-forget helper for clicking a workspace pill (Awesome only).
+    // Fire-and-forget helper for clicking a workspace pill.
     Process {
         id: awesomeViewTag
     }
 
     Variants {
-        // HDMI-A-0/-1 mirrors the primary monitor (--same-as under X11,
-        // `mirror` under Hyprland) so it reports as its own screen too;
-        // without this filter it would get a second PanelWindow drawn on
-        // top of the primary's. Matched by prefix since X11 and Hyprland
-        // name the same physical port differently (HDMI-A-0 vs HDMI-A-1).
-        model: Quickshell.screens.filter(screen => !screen.name.startsWith("HDMI"))
+        // HDMI-A-0 mirrors DisplayPort-0 (--same-as in the xrandr setup), so
+        // it reports as its own screen too; without this filter it would
+        // get a second PanelWindow drawn on top of DisplayPort-0's.
+        model: Quickshell.screens.filter(screen => screen.name !== "HDMI-A-0")
 
         PanelWindow {
             id: bar
@@ -71,27 +59,6 @@ ShellRoot {
             }
             implicitHeight: 32
             color: root.colorBg
-
-            // Hyprland-only: this monitor's HyprlandMonitor, and a fixed
-            // 1-10 workspace list (matching the workspace binds in
-            // hyprland.lua) shaped like awesomeTags' per-tag objects so it
-            // slots into the same Rectangle/Text bindings below. Hyprland
-            // workspaces don't track "occupied" the way Awesome tags do
-            // (a workspace object only exists once visited), and the
-            // visual style below never used that field anyway.
-            readonly property var hyprMonitor: root.isHyprland ? Hyprland.monitorFor(bar.screen) : null
-            readonly property var hyprTags: {
-                if (!bar.hyprMonitor)
-                    return [];
-                const activeName = bar.hyprMonitor.activeWorkspace ? bar.hyprMonitor.activeWorkspace.name : "";
-                const urgentNames = Hyprland.workspaces.values.filter(w => w.urgent).map(w => w.name);
-                const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-                return nums.map(n => ({
-                    name: String(n),
-                    focused: String(n) === activeName,
-                    urgent: urgentNames.includes(String(n)),
-                }));
-            }
 
             Item {
                 anchors.fill: parent
@@ -116,16 +83,12 @@ ShellRoot {
 
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: launcherProcess.running = true
+                        onClicked: rofiProcess.running = true
                     }
 
-                    // wofi under Hyprland (matches its own $menu bind in
-                    // hyprland.lua), rofi under Awesome (matches rc.lua).
                     Process {
-                        id: launcherProcess
-                        command: root.isHyprland
-                            ? [ "wofi", "-i", "--show", "drun" ]
-                            : [ "rofi", "-show", "drun", "-show-icons" ]
+                        id: rofiProcess
+                        command: [ "rofi", "-show", "drun", "-show-icons" ]
                     }
                 }
 
@@ -138,7 +101,7 @@ ShellRoot {
                     spacing: 4
 
                     Repeater {
-                        model: root.isHyprland ? bar.hyprTags : ((root.awesomeTags[bar.screen.name] || {}).tags || [])
+                        model: (root.awesomeTags[bar.screen.name] || {}).tags || []
 
                         Rectangle {
                             width: 28
@@ -160,16 +123,12 @@ ShellRoot {
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: {
-                                    if (root.isHyprland) {
-                                        Hyprland.dispatch("workspace " + modelData.name);
-                                    } else {
-                                        awesomeViewTag.command = [
-                                            "/home/mike/.config/quickshell/awesome-view-tag.sh",
-                                            bar.screen.name,
-                                            modelData.name
-                                        ];
-                                        awesomeViewTag.running = true;
-                                    }
+                                    awesomeViewTag.command = [
+                                        "/home/mike/.config/quickshell/awesome-view-tag.sh",
+                                        bar.screen.name,
+                                        modelData.name
+                                    ];
+                                    awesomeViewTag.running = true;
                                 }
                             }
                         }
@@ -177,10 +136,7 @@ ShellRoot {
                 }
 
                 // --- Layout indicator: this monitor's current layout ---
-                // Awesome-only: Hyprland workspaces don't carry a
-                // per-workspace layout name the way Awesome tags do.
                 Rectangle {
-                    visible: !root.isHyprland
                     anchors.left: workspaces.right
                     anchors.leftMargin: 10
                     anchors.verticalCenter: parent.verticalCenter

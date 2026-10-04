@@ -9,6 +9,7 @@ AwesomeWM config, carried over from a NixOS/home-manager setup, for use on openS
 - `config/wallpaper.jpg` — desktop wallpaper referenced by the theme.
 - `config/view-tag.sh` — helper script invoked from the quickshell bar to switch Awesome tags; on the old system it was deployed to `~/.config/quickshell/awesome-view-tag.sh`.
 - `quickshell/shell.qml` — the quickshell bar UI. **This file is shared with a Hyprland setup on the source system** — most of it is generic, but the tag-state polling (reads `~/.cache/awesome/tags.json`) and the calls to `awesome-view-tag.sh` are Awesome-specific. Keep that in mind if adapting or trimming it.
+- `quickshell/nix-snowflake-white.svg` — distro-logo icon used in the bar. **This is literally the NixOS snowflake logo** — swap it for something else (e.g. an openSUSE geeko icon) or drop that bar button once this is running on openSUSE, since the icon won't make sense there anymore.
 
 ## Not yet ported (Nix-specific, needs manual equivalent on openSUSE)
 

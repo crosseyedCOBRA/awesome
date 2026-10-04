@@ -230,10 +230,13 @@ tag.connect_signal("property::layout", function(t)
 end)
 -- }}}
 
--- Only in the standalone Awesome session (not the "xfce+awesome" hybrid,
--- which uses the XFCE panel instead): (re)start quickshell as this
--- session's bar now that Awesome's own wibar has been retired.
-if os.getenv("DESKTOP_SESSION") == "none+awesome" then
+-- Only in the standalone Awesome session (not an "xfce+awesome" hybrid,
+-- which would use the XFCE panel instead): (re)start quickshell as this
+-- session's bar now that Awesome's own wibar has been retired. "awesome" is
+-- what a stock Arch awesome.desktop sets $DESKTOP_SESSION to; "none+awesome"
+-- is kept for the old NixOS/lightdm session naming.
+local desktop_session = os.getenv("DESKTOP_SESSION")
+if desktop_session == "awesome" or desktop_session == "none+awesome" then
     awful.spawn.with_shell("systemctl --user restart quickshell.service")
 end
 

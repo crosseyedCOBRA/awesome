@@ -89,14 +89,6 @@ link "$REPO_DIR/wallpapers" "$WALLPAPERS_DIR"
 echo
 echo "Done."
 echo
-echo "KNOWN GOTCHA: config/rc.lua only (re)starts quickshell when"
-echo "\$DESKTOP_SESSION == \"none+awesome\" (a NixOS/lightdm-specific session"
-echo "name). A stock Arch Awesome session usually sets DESKTOP_SESSION to"
-echo "just \"awesome\", so that check will never fire there. Either edit the"
-echo "check in config/rc.lua to match this machine's actual \$DESKTOP_SESSION"
-echo "(run 'echo \$DESKTOP_SESSION' in a logged-in session to check), or just"
-echo "rely on the systemd user service enabled above to start quickshell."
-echo
-echo "Also check: the xrandr monitor layout hardcoded in config/rc.lua and"
+echo "Check: the xrandr monitor layout hardcoded in config/rc.lua and"
 echo "scripts/toggle-hdmi matches the source machine's monitor setup --"
 echo "update the output names/modes/resolutions if this machine differs."

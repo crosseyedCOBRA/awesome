@@ -20,6 +20,5 @@ Run `./install.sh` from a checkout of this repo. It installs packages with `pacm
 
 ## Known gotchas (not fixed by install.sh — need a manual edit to `rc.lua`)
 
-- **Quickshell restart trigger**: `rc.lua` only (re)starts quickshell when `$DESKTOP_SESSION == "none+awesome"`, a NixOS/lightdm-specific session name. On Arch with a different display manager, that variable will likely be something else, so the check silently never fires. Either change the check in `rc.lua` to match whatever `$DESKTOP_SESSION` actually is on the target machine, or just rely on the systemd service installed by `install.sh`.
 - **Hardcoded monitor layout**: the `xrandr` call near the top of `rc.lua`, and `scripts/toggle-hdmi`, hardcode the source machine's exact outputs/modes/refresh rates (`DisplayPort-0/1/2`, `HDMI-A-0`). Update these if the target machine's monitor setup differs.
 - **Packages with no official Arch binary**: `quickshell` and `openrgb` aren't in the official repos — `install.sh` just checks whether they're already on `$PATH` and prints a reminder to grab them from the AUR instead of attempting to install them.

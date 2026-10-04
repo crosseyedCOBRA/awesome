@@ -142,6 +142,10 @@ awful.spawn("openrgb")
 -- the session is locked.
 awful.spawn.with_shell("xset s off -dpms")
 
+-- Compositor (shadows, fades, vsync). Guarded so an Awesome restart doesn't
+-- stack a second instance on top of the one already running.
+awful.spawn.with_shell("pgrep -x picom >/dev/null || picom -b")
+
 local function set_wallpaper(s)
     -- Wallpaper
     if beautiful.wallpaper then
@@ -232,11 +236,13 @@ end)
 
 -- Only in the standalone Awesome session (not an "xfce+awesome" hybrid,
 -- which would use the XFCE panel instead): (re)start quickshell as this
--- session's bar now that Awesome's own wibar has been retired. "awesome" is
--- what a stock Arch awesome.desktop sets $DESKTOP_SESSION to; "none+awesome"
--- is kept for the old NixOS/lightdm session naming.
+-- session's bar now that Awesome's own wibar has been retired. Not every
+-- display manager sets $DESKTOP_SESSION (this machine's doesn't), so also
+-- accept $XDG_SESSION_DESKTOP == "awesome", which an xfce+awesome hybrid
+-- reports as "xfce". "none+awesome" is kept for the old NixOS/lightdm naming.
 local desktop_session = os.getenv("DESKTOP_SESSION")
-if desktop_session == "awesome" or desktop_session == "none+awesome" then
+if desktop_session == "awesome" or desktop_session == "none+awesome"
+    or os.getenv("XDG_SESSION_DESKTOP") == "awesome" then
     awful.spawn.with_shell("systemctl --user restart quickshell.service")
 end
 

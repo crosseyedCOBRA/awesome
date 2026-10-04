@@ -1,0 +1,5 @@
+# Sourced by the display manager (ly's setup.sh) before the X session starts.
+# Cursor theme for clients that only honour the env vars rather than
+# Xresources or ~/.icons/default (matches config/Xresources).
+export XCURSOR_THEME=Bibata-Modern-Ice
+export XCURSOR_SIZE=24

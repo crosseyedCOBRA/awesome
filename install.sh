@@ -17,6 +17,7 @@ WALLPAPERS_DIR="$HOME/Pictures/wallpapers"
 PACMAN_PKGS=(
   base-devel git
   alacritty rofi xorg-xrandr xorg-xset polkit-gnome i3lock
+  xorg-xrdb picom
   libnotify playerctl brightnessctl pavucontrol flameshot xclip
   thunar tumbler blueman
   ttf-jetbrains-mono-nerd ttf-font-awesome
@@ -24,7 +25,7 @@ PACMAN_PKGS=(
 
 # Not in the official repos -- installed from the AUR below, via an AUR
 # helper if one is already present, otherwise by building directly.
-AUR_PKGS=(quickshell openrgb)
+AUR_PKGS=(quickshell openrgb bibata-cursor-theme)
 
 link() {
   local src="$1" dst="$2"
@@ -89,13 +90,30 @@ link "$REPO_DIR/config/rc.lua" "$CONFIG_DIR/rc.lua"
 link "$REPO_DIR/config/theme.lua" "$CONFIG_DIR/theme.lua"
 link "$REPO_DIR/config/wallpaper.jpg" "$CONFIG_DIR/wallpaper.jpg"
 
+echo "==> Linking picom config"
+link "$REPO_DIR/config/picom.conf" "$HOME/.config/picom/picom.conf"
+
+echo "==> Linking Bibata-Modern-Ice cursor config"
+link "$REPO_DIR/config/Xresources" "$HOME/.Xresources"
+link "$REPO_DIR/config/cursor-index.theme" "$HOME/.icons/default/index.theme"
+link "$REPO_DIR/config/xprofile" "$HOME/.xprofile"
+echo "  setting XCURSOR_THEME/XCURSOR_SIZE system-wide in /etc/environment"
+for kv in XCURSOR_THEME=Bibata-Modern-Ice XCURSOR_SIZE=24; do
+  key="${kv%%=*}"
+  if grep -q "^$key=" /etc/environment; then
+    sudo sed -i "s|^$key=.*|$kv|" /etc/environment
+  else
+    echo "$kv" | sudo tee -a /etc/environment >/dev/null
+  fi
+done
+
 echo "==> Creating Awesome cache dir (for the quickshell tag-state file)"
 mkdir -p "$CACHE_DIR"
 
 echo "==> Linking quickshell bar into $QUICKSHELL_DIR"
 chmod +x "$REPO_DIR/config/view-tag.sh"
 link "$REPO_DIR/quickshell/shell.qml" "$QUICKSHELL_DIR/shell.qml"
-link "$REPO_DIR/quickshell/nix-snowflake-white.svg" "$QUICKSHELL_DIR/nix-snowflake-white.svg"
+link "$REPO_DIR/quickshell/archlinux-logo-white.svg" "$QUICKSHELL_DIR/archlinux-logo-white.svg"
 link "$REPO_DIR/config/view-tag.sh" "$QUICKSHELL_DIR/awesome-view-tag.sh"
 
 echo "==> Linking helper scripts into $BIN_DIR"

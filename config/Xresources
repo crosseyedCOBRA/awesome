@@ -1,0 +1,3 @@
+! Loaded by the display manager (ly's setup.sh) before Awesome starts.
+Xcursor.theme: Bibata-Modern-Ice
+Xcursor.size: 24

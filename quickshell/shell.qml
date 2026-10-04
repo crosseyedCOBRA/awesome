@@ -76,7 +76,7 @@ ShellRoot {
                     Image {
                         anchors.fill: parent
                         anchors.margins: 3
-                        source: Qt.resolvedUrl("nix-snowflake-white.svg")
+                        source: Qt.resolvedUrl("archlinux-logo-white.svg")
                         sourceSize: Qt.size(16, 16)
                         fillMode: Image.PreserveAspectFit
                     }

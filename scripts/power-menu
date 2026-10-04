@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+choice=$(printf 'Lock\nLogout\nSuspend\nReboot\nShutdown' | \
+  rofi -dmenu -p "Power" -theme-str 'listview { lines: 5; }')
+case "$choice" in
+  Lock) lock-screen ;;
+  Logout) awesome-client 'awesome.quit()' ;;
+  Suspend) systemctl suspend ;;
+  Reboot) systemctl reboot ;;
+  Shutdown) systemctl poweroff ;;
+esac

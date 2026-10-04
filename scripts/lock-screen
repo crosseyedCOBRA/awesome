@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+# Screens otherwise never blank (DPMS is disabled at Awesome startup, see
+# rc.lua) -- this turns DPMS back on for exactly as long as the session is
+# locked, so monitors still sleep, just only while locked.
+xset s on
+xset dpms 30 30 30
+i3lock --nofork
+xset s off
+xset -dpms

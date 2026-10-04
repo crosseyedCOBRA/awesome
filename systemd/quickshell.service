@@ -1,0 +1,8 @@
+[Unit]
+Description=Quickshell status bar
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=quickshell -p %h/.config/quickshell/shell.qml
+Restart=on-failure

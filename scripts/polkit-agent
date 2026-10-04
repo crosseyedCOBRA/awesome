@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Polkit authentication agent, so privileged GUI actions (mounting drives,
+# NetworkManager, etc.) get a password prompt instead of silently failing.
+# Path matches the Arch `polkit-gnome` package's install location.
+exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1

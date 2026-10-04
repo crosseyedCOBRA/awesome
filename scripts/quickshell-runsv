@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+# Void has no systemd --user, so there's no service unit to supervise
+# quickshell the way systemd/quickshell.service does on Arch. This instead
+# kills any existing quickshell instance and relaunches it in a small retry
+# loop in the background, so it still comes back if it ever dies mid-session.
+pkill -x quickshell 2>/dev/null
+
+(
+  while true; do
+    quickshell -p "$HOME/.config/quickshell/shell.qml"
+    sleep 1
+  done
+) >/dev/null 2>&1 &
+disown

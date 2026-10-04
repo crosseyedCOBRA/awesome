@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+# Toggles HDMI-A-0 (which normally mirrors DisplayPort-0) on/off.
+# Hardware-specific to the source machine's monitor layout -- adjust the
+# output names/mode below if this machine's outputs differ (compare against
+# the xrandr call near the top of config/rc.lua).
+if xrandr --query | grep -q "^HDMI-A-0 connected [0-9]"; then
+  xrandr --output HDMI-A-0 --off
+else
+  xrandr --output HDMI-A-0 --mode 1920x1080 --rate 60 --rotate normal --same-as DisplayPort-0
+fi

@@ -21,4 +21,8 @@ Run `./install.sh` from a checkout of this repo. It installs packages with `pacm
 ## Known gotchas (not fixed by install.sh — need a manual edit to `rc.lua`)
 
 - **Hardcoded monitor layout**: the `xrandr` call near the top of `rc.lua`, and `scripts/toggle-hdmi`, hardcode the source machine's exact outputs/modes/refresh rates (`DisplayPort-0/1/2`, `HDMI-A-0`). Update these if the target machine's monitor setup differs.
-- **Packages with no official Arch binary**: `quickshell` and `openrgb` aren't in the official repos — `install.sh` just checks whether they're already on `$PATH` and prints a reminder to grab them from the AUR instead of attempting to install them.
+- **Audio stack not auto-installed**: `pactl` (used by the volume keybinds) comes from either `pipewire-pulse` or `pulseaudio`, which conflict with each other. `install.sh` only checks whether `pactl` already exists and warns if not, rather than picking one for you and potentially replacing whatever audio stack is already set up.
+
+## Package installation
+
+`install.sh` installs everything it can with `pacman`. `quickshell` and `openrgb` aren't in the official repos, so for those it uses an AUR helper (`yay`/`paru`) if one is already installed, and otherwise builds them directly from the AUR with `git` + `makepkg` (both of which it also installs via `base-devel`/`git`). Building `quickshell` from source can take a while.

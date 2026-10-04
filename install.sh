@@ -12,17 +12,19 @@ BIN_DIR="$HOME/.local/bin"
 SYSTEMD_USER_DIR="$HOME/.config/systemd/user"
 WALLPAPERS_DIR="$HOME/Pictures/wallpapers"
 
-# Packages available in the official repos.
+# Packages available in the official repos. base-devel + git are here so
+# the AUR fallback build below (makepkg) always has what it needs.
 PACMAN_PKGS=(
+  base-devel git
   alacritty rofi xorg-xrandr xorg-xset polkit-gnome i3lock
   libnotify playerctl brightnessctl pavucontrol flameshot xclip
   thunar tumbler blueman
   ttf-jetbrains-mono-nerd ttf-font-awesome
 )
 
-# AUR-only, or uncertain enough across Arch/distro versions that we just
-# check for them rather than risk a failed pacman transaction.
-AUR_OR_MANUAL_PKGS=(quickshell openrgb)
+# Not in the official repos -- installed from the AUR below, via an AUR
+# helper if one is already present, otherwise by building directly.
+AUR_PKGS=(quickshell openrgb)
 
 link() {
   local src="$1" dst="$2"
@@ -40,17 +42,46 @@ for pkg in "${PACMAN_PKGS[@]}"; do
   sudo pacman -S --needed --noconfirm "$pkg" || echo "  WARNING: failed to install $pkg, check the package name/repo"
 done
 
-echo "==> Checking AUR-only / manual-install packages"
-for pkg in "${AUR_OR_MANUAL_PKGS[@]}"; do
+aur_helper() {
+  for helper in yay paru; do
+    command -v "$helper" >/dev/null 2>&1 && { echo "$helper"; return 0; }
+  done
+  return 1
+}
+
+install_aur_pkg() {
+  local pkg="$1" helper
   if command -v "$pkg" >/dev/null 2>&1; then
-    echo "  $pkg: found"
-  else
-    echo "  $pkg: NOT FOUND -- install from the AUR (e.g. 'yay -S $pkg' or '$pkg-git')"
+    echo "  $pkg: already installed"
+    return 0
   fi
+  if helper=$(aur_helper); then
+    echo "  installing $pkg via $helper"
+    "$helper" -S --needed --noconfirm "$pkg" || echo "  WARNING: $helper failed to install $pkg"
+  else
+    echo "  no AUR helper found; building $pkg directly from the AUR"
+    local build_dir
+    build_dir="$(mktemp -d)"
+    if git clone --depth 1 "https://aur.archlinux.org/$pkg.git" "$build_dir/$pkg" \
+        && (cd "$build_dir/$pkg" && makepkg -si --noconfirm); then
+      :
+    else
+      echo "  WARNING: failed to build $pkg from the AUR"
+    fi
+    rm -rf "$build_dir"
+  fi
+}
+
+echo "==> Installing AUR packages"
+for pkg in "${AUR_PKGS[@]}"; do
+  install_aur_pkg "$pkg"
 done
 
+# Not auto-installed: pipewire-pulse and pulseaudio both provide pactl and
+# conflict with each other, so picking one here could silently replace
+# whatever audio stack is already set up on this machine.
 if ! command -v pactl >/dev/null 2>&1; then
-  echo "  pactl: NOT FOUND -- volume keybinds need it; install pipewire-pulse or pulseaudio"
+  echo "  pactl: NOT FOUND -- volume keybinds need it; install pipewire-pulse or pulseaudio yourself"
 fi
 
 echo "==> Linking Awesome config into $CONFIG_DIR"
@@ -81,7 +112,9 @@ esac
 echo "==> Installing quickshell systemd user service"
 link "$REPO_DIR/systemd/quickshell.service" "$SYSTEMD_USER_DIR/quickshell.service"
 systemctl --user daemon-reload
-systemctl --user enable quickshell.service
+# Deliberately not `enable`d: the unit has no [Install] section by design --
+# rc.lua itself (re)starts this service when Awesome's standalone session
+# starts, rather than systemd auto-starting it at login.
 
 echo "==> Linking wallpaper collection into $WALLPAPERS_DIR"
 link "$REPO_DIR/wallpapers" "$WALLPAPERS_DIR"
